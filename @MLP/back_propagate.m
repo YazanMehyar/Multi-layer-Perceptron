@@ -1,42 +1,28 @@
 function back_propagate(this, sample, label, result)
-  new_weights = cell(this.num_layers,10);
-  dWeight = cell(this.num_layers,10);
+  new_weights = cell(1,this.num_layers);
   %output layer
-  for node = 1 : 10
-    dWeight{this.num_layers,node} = (1 - result(node))*(label(node) - result(node))*this.InOutCell(this.num_layers - 1,:);
-    dWeight{this.num_layers, node}(11) = (1 - result(node))*(label(node) - result(node))*1;
-    new_weights{this.num_layers,node} = this.learning_Rate*dWeight{this.num_layers,node} + this.weightsCell{this.num_layers,node};
-    % the bias weight update
-    % new_weights{this.num_layers,node}(11) = this.learning_Rate*dWeight{this.num_layers, node}(11) + this.weightsCell{this.num_layers,node}(11);
-  end
+  dEdW = (repmat((label - result).*result.*(1 - result),this.hidden_nodes,1) ...      %d(E)/d(result)*d(result)/d(netSum)
+         .*repmat([this.layer_output{this.num_layers - 1},1]',1,this.output_nodes))'; %d(netSum)/d(weight)
 
-  %for each hidden layer
+  new_weights{this.num_layers} = this.learning_Rate.*dEdW + this.layer_w{this.num_layers};
+
+
+  %for each hidden layer except first
   for layer = this.num_layers - 1 : -1 : 2
-    for node = 1 : 10
-      dsum = 0;
-      for dDependence = 1:10
-        dsum = dsum + dWeight{layer+1,dDependence}(node) * this.weightsCell{layer+1, dDependence}(node);
-      end
-      dWeight{layer,node} = (1 - this.InOutCell(layer,node))*this.InOutCell(layer - 1,:)*dsum;
-      dWeight{layer, node}(11) = (1 - this.InOutCell(layer,node))*dsum;
-      new_weights{layer,node} = this.learning_Rate*dWeight{layer,node} + this.weightsCell{layer,node};
-      % the bias weight update
-      % new_weights{layer,node}(11) = this.learning_Rate*dWeight{layer, node}(11) + this.weightsCell{layer,node}(11);
-    end
+    dsum = sum(dEdW.*layer_w{layer + 1},1);
+    dsum = dsum(1:this.hidden_nodes); % remove d(E)/d(Bias Weight)
+    dEdW = (repmat((1 - layer_output{layer}).*dsum,this.hidden_nodes + 1,1)...
+          .*repmat([this.layer_output{layer - 1},1]',1,this.hidden_nodes))';
+
+    new_weights{layer} = this.learning_Rate.*dEdW + this.layer_w{layer};
   end
 
   % first layer
-  for node = 1 : 10
-    dsum = 0;
-    for dDependence = 1:10
-      dsum = dsum + dWeight{2,dDependence}(node) * this.weightsCell{2, dDependence}(node);
-    end
-    dWeight{1,node} = (1 - this.InOutCell(1,node))*sample*dsum;
-    dWeight{1, node}(8) = (1 - this.InOutCell(1,node))*dsum;
-    new_weights{1,node} = this.learning_Rate*dWeight{1,node} + this.weightsCell{1,node};
-    % the bias weight update
-    % new_weights{1,node}(8) = this.learning_Rate*dWeight{1, node}(8) + this.weightsCell{1,node}(8);
-  end
+  dsum = sum(dEdW.*layer_w{2},1);
+  dsum = dsum(1:this.hidden_nodes); % remove d(E)/d(Bias Weight)
+  dEdW = (repmat((1 - layer_output{1}).*dsum,7 + 1,1)...
+          .*repmat([sample,1]',1,this.hidden_nodes))';
+  new_weights{1} = this.learning_Rate.*dEdW + this.layer_w{1};
 
-  this.weightsCell = new_weights;
+  this.layer_w = new_weights;
 end

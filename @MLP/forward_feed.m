@@ -1,3 +1,11 @@
+% Pass a sample to the MLP for it to be classified
+%
+% FORWARD_FEED( MLP object, sample )
+%
+% Returns: An MLP with outputs of the given sample set
+%
+% NOTE the probability of each class is the output from the output layer
+%
 function this = forward_feed(self, sample)
   %first layer
   this = self;

@@ -1,3 +1,17 @@
+% Multi-layer Perceptron class
+%
+% MLP( learning_Rate, num_of_layers, num_of_hiddenNodes, num_of_features )
+%
+% Arguments: 
+%  'learning_Rate' a real number controlling how large changes to weights when training.
+%               usually set 0 > lR < 1.
+%  'num_of_layers' the number of layers the MLP has. Should be an integer > 2 
+%               (1 hidden + 1 output).
+%  'num_of_hiddenNodes' the number of nodes within each hidden layer.
+%
+%  'num_of_features' The number of features used for each sample
+%
+% Returns: MLP object with 10 output nodes
 function obj = MLP(learning_Rate, num_layers, hidden_nodes, feature_length)
   if num_layers < 2
     error('Number of layers must be at least 2');
